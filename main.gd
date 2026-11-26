@@ -16,6 +16,9 @@ func _ready() -> void:
 	create_environment()
 	create_light()
 	create_camera()
+	var state := BoardState.new()
+	state.setup_start_position()
+	print(state.to_text())
 
 
 func square_to_world(file: int, rank: int) -> Vector3:
