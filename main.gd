@@ -9,6 +9,10 @@ const DARK_COLOR := Color(0.45, 0.30, 0.20)
 var light_material: StandardMaterial3D
 var dark_material: StandardMaterial3D
 
+var board_state: BoardState
+var pieces_root: Node3D
+var piece_nodes := {}
+
 
 func _ready() -> void:
 	create_materials()
@@ -16,9 +20,7 @@ func _ready() -> void:
 	create_environment()
 	create_light()
 	create_camera()
-	var state := BoardState.new()
-	state.setup_start_position()
-	print(state.to_text())
+	create_pieces()
 
 
 func square_to_world(file: int, rank: int) -> Vector3:
@@ -50,6 +52,30 @@ func create_board() -> void:
 			square.material_override = dark_material if (file + rank) % 2 == 0 else light_material
 			square.position = square_to_world(file, rank) + Vector3(0, -BOARD_THICKNESS / 2.0, 0)
 			board.add_child(square)
+
+
+func create_pieces() -> void:
+	board_state = BoardState.new()
+	board_state.setup_start_position()
+
+	pieces_root = Node3D.new()
+	pieces_root.name = "Pieces"
+	add_child(pieces_root)
+
+	for rank in BoardState.BOARD_SIZE:
+		for file in BoardState.BOARD_SIZE:
+			var square := Vector2i(file, rank)
+			var piece := board_state.get_piece(square)
+			if piece != null:
+				spawn_piece(piece, square)
+
+
+func spawn_piece(piece: Piece, square: Vector2i) -> void:
+	var node := PieceFactory.create(piece.type, piece.side)
+	node.name = "%s_%s" % [piece.to_letter(), BoardState.square_name(square)]
+	node.position = square_to_world(square.x, square.y)
+	pieces_root.add_child(node)
+	piece_nodes[square] = node
 
 
 func create_environment() -> void:
